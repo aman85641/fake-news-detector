@@ -1,7 +1,7 @@
-streamlit
-requests
-beautifulsoup4
-Pillow
-tensorflow
-spacy
-validators
+streamlit==1.44.1
+requests==2.32.3
+beautifulsoup4==4.13.3
+Pillow==11.1.0
+tensorflow==2.19.0
+spacy==3.8.5
+validators==0.34.0

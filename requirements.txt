@@ -7,4 +7,3 @@ numpy
 spacy
 validators
 python-dotenv
-scraper

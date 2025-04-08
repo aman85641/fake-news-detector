@@ -9,6 +9,7 @@ import io
 import base64
 import spacy
 import validators  
+from dotenv import load_dotenv
 
 def scrape_website(url):
     """Scrape the given news website for text and images."""
@@ -74,6 +75,15 @@ st.title("Fake News Detector")
 st.write("Enter a news article URL to check its authenticity.")
 
 url = st.text_input("Enter News URL:")
+
+load_dotenv()  # Load environment variables from .env file
+
+# Debugging: Check if the API key is loaded
+if not os.getenv("FACT_CHECK_API_KEY"):
+    print("Error: FACT_CHECK_API_KEY is not set or loaded.")
+else:
+    print("FACT_CHECK_API_KEY loaded successfully.")
+
 apikey = os.getenv("FACT_CHECK_API_KEY")  # Fetch API key from environment variable
 
 if st.button("Check News"):

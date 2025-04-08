@@ -1,70 +1,15 @@
+# app.py
 import streamlit as st
-import requests
 import os
-import numpy as np
-from bs4 import BeautifulSoup
-from tensorflow.keras.models import load_model
-from PIL import Image
-import io
-import spacy
 import validators
 from dotenv import load_dotenv
+from scraper import scrape_website
+from factcheck import extract_key_sentence, check_text_fact
+from imagecheck import check_image_deepfake
+from tensorflow.keras.models import load_model
 
-# ------------------------------ Scraper --------------------------------- #
-def scrape_website(url):
-    response = requests.get(url)
-    if response.status_code != 200:
-        return None, None
-    soup = BeautifulSoup(response.text, 'html.parser')
-    paragraphs = soup.find_all('p')
-    text_content = ' '.join([p.get_text() for p in paragraphs])
-    images = [img['src'] for img in soup.find_all('img') if 'src' in img.attrs and not img['src'].startswith('data:')]
-    return text_content, images
+st.set_page_config(page_title="🧠 Fake News Detector", layout="wide")
 
-# ------------------------------ Fact Check ------------------------------ #
-def extract_key_sentence(text):
-    try:
-        nlp = spacy.load('en_core_web_sm')
-        doc = nlp(text)
-        claims = [ent.text for ent in doc.ents if ent.label_ in ['ORG', 'PERSON', 'EVENT']]
-        return claims[0] if claims else ' '.join(text.split('.')[:3])
-    except:
-        return ' '.join(text.split('.')[:3])
-
-def check_text_fact(text, api_key):
-    endpoint = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
-    params = {
-        "query": ' '.join(text.split()[:20]),
-        "key": api_key
-    }
-    response = requests.get(endpoint, params=params)
-
-    if response.status_code != 200:
-        return "Error accessing Fact Check API", None
-
-    data = response.json()
-    if 'claims' in data and len(data['claims']) > 0:
-        claim_review = data['claims'][0].get('claimReview', [{}])[0]
-        return claim_review.get('textualRating', 'Unknown'), claim_review.get('title', 'No additional details available')
-    
-    return "No fact-check information found", None
-
-# --------------------------- Deepfake Checker --------------------------- #
-def check_image_deepfake(image_url, model):
-    response = requests.get(image_url, stream=True)
-    if response.status_code != 200:
-        return "Error fetching image"
-    try:
-        img = Image.open(io.BytesIO(response.content)).convert('RGB')
-        img = img.resize((128, 128))
-        img_array = np.array(img) / 255.0
-        img_array = np.expand_dims(img_array, axis=0)
-        prediction = model.predict(img_array)
-        return "Deepfake" if prediction[0][0] > 0.5 else "Real"
-    except Exception:
-        return "Invalid Image"
-
-# ----------------------------- Streamlit UI ----------------------------- #
 st.title("🧠 Fake News Detector")
 st.write("Enter a news article URL to check for misinformation.")
 
@@ -115,7 +60,7 @@ if st.button("Check News"):
 
             if images:
                 st.subheader("🖼️ Extracted Images")
-                model = load_model("deepfake_model.h5",compile=False)
+                model = load_model("deepfake_model.h5", compile=False)
                 deepfake_results = {}
 
                 with st.spinner("🧠 Running deepfake analysis..."):

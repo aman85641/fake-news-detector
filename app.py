@@ -35,15 +35,16 @@ def check_text_fact(text, api_key):
         "key": api_key
     }
     response = requests.get(endpoint, params=params)
+    
+    # Debugging: Log the full request and response
+    print("API Request URL:", response.url)
+    print("API Response Status Code:", response.status_code)
+    print("API Response Content:", response.text)
+    
     if response.status_code != 200:
         return "Error accessing Fact Check API", None
     
     data = response.json()
-    
-    # Debugging: Log the query and response
-    print("Query Sent to API:", text)
-    print("API Response:", data)
-    
     if 'claims' in data and len(data['claims']) > 0:
         claim = data['claims'][0]
         claim_review = claim.get('claimReview', [{}])[0]

@@ -107,11 +107,7 @@ if st.button("🚀 Analyze"):
             with st.spinner("🔍 Verifying with Google Fact Check..."):
                 text_result, review_details = check_text_fact(key_sentence, apikey)
 
-            # 🐞 DEBUG: Print raw output regardless
-            st.subheader("🐞 Debug Info")
-            st.write("**Key Sentence Queried:**", key_sentence)
-            st.write("**Fact Check Result:**", text_result)
-            st.write("**Review Details:**", review_details)
+            
 
             if text_result == "No fact-check information found":
                 st.warning("ℹ️ No fact-check results found.")

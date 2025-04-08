@@ -1,9 +1,7 @@
 streamlit
 requests
 beautifulsoup4
+Pillow
 tensorflow
-pillow
-numpy
 spacy
 validators
-python-dotenv

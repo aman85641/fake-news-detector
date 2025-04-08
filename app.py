@@ -1,6 +1,5 @@
 import streamlit as st
 import requests
-import os
 import numpy as np
 from bs4 import BeautifulSoup
 from tensorflow.keras.models import load_model
@@ -8,14 +7,13 @@ from PIL import Image
 import io
 import spacy
 import validators
-from dotenv import load_dotenv
 
-# ------------------------------ Setup ------------------------------ #
+# ------------------------------ Page Config ------------------------------ #
 st.set_page_config(page_title="Fake News Detector", layout="wide")
 st.title("🧠 Fake News Detector")
 st.write("Paste a news article URL to verify if it's fake or real using Google Fact Check & Deepfake detection.")
 
-# ------------------------------ Utilities ------------------------------ #
+# ------------------------------ Functions ------------------------------ #
 def scrape_website(url):
     try:
         response = requests.get(url)
@@ -77,27 +75,24 @@ def check_image_deepfake(image_url, model):
         return "Invalid Image"
 
 # ------------------------------ Load API Key ------------------------------ #
-load_dotenv()
-apikey = os.getenv("FACT_CHECK_API_KEY")
-if not apikey:
-    st.error("❌ API Key not found. Please ensure FACT_CHECK_API_KEY is set in your .env file.")
+try:
+    apikey = st.secrets["FACT_CHECK_API_KEY"]
+except KeyError:
+    st.error("❌ API Key not found. Please add your FACT_CHECK_API_KEY in Streamlit Cloud secrets.")
+    st.stop()
 
-# ------------------------------ Input ------------------------------ #
+# ------------------------------ Input Section ------------------------------ #
 url = st.text_input("🔗 Enter News URL:")
 
 if st.button("🚀 Analyze"):
     if not url or not validators.url(url):
         st.warning("⚠️ Please enter a valid HTTP/HTTPS URL.")
-    elif not apikey:
-        st.warning("⚠️ API key not found.")
     else:
-        # -------- Scrape -------- #
         with st.spinner("🔍 Scraping website..."):
             text, images = scrape_website(url)
 
         text_flag = False
 
-        # -------- Fact Check -------- #
         if text:
             st.subheader("📝 Extracted Text")
             st.write(text[:500] + "...")
@@ -106,8 +101,6 @@ if st.button("🚀 Analyze"):
 
             with st.spinner("🔍 Verifying with Google Fact Check..."):
                 text_result, review_details = check_text_fact(key_sentence, apikey)
-
-            
 
             if text_result == "No fact-check information found":
                 st.warning("ℹ️ No fact-check results found.")
@@ -128,7 +121,7 @@ if st.button("🚀 Analyze"):
             st.warning("⚠️ No readable text found.")
             text_flag = False
 
-        # -------- Image Check -------- #
+        # ---------------- Image Deepfake Check ---------------- #
         fake_score = 0
         if images:
             st.subheader("🖼️ Extracted Images")
@@ -136,16 +129,16 @@ if st.button("🚀 Analyze"):
             deepfake_results = {}
 
             with st.spinner("🧠 Running Deepfake Detection..."):
-                for img_url in images[:3]:  # Limit to 3 for performance
+                for img_url in images[:3]:
                     result = check_image_deepfake(img_url, model)
                     deepfake_results[img_url] = result
-                    st.image(img_url, caption=result, use_container_width=True)
+                    st.image(img_url, caption=result, use_column_width=True)
 
             fake_score = sum(1 for v in deepfake_results.values() if v == "Deepfake") / max(len(deepfake_results), 1)
         else:
             st.info("No images found.")
 
-        # -------- Final Verdict -------- #
+        # ---------------- Verdict ---------------- #
         st.subheader("✅ Final Verdict")
         st.write("🤖 Combining image and text analysis...")
 

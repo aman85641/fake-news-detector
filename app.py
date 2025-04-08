@@ -37,7 +37,10 @@ def extract_key_sentence(text):
         nlp = spacy.load('en_core_web_sm')
         doc = nlp(text)
         sentences = list(doc.sents)
-        return sentences[0].text if sentences else text[:200]
+        for sent in sentences:
+            if len(sent.text.split()) > 5:
+                return sent.text
+        return text[:200]
     except:
         return text[:200]
 
@@ -56,7 +59,7 @@ def check_text_fact(text, api_key):
             claim_review = data['claims'][0].get('claimReview', [{}])[0]
             return claim_review.get('textualRating', 'Unknown'), claim_review.get('title', 'No details available')
         return "No fact-check information found", None
-    except:
+    except Exception as e:
         return "Error during fact check", None
 
 def check_image_deepfake(image_url, model):
@@ -95,7 +98,6 @@ if st.button("🚀 Analyze"):
         text_flag = False
 
         # -------- Fact Check -------- #
-
         if text:
             st.subheader("📝 Extracted Text")
             st.write(text[:500] + "...")
@@ -104,7 +106,8 @@ if st.button("🚀 Analyze"):
 
             with st.spinner("🔍 Verifying with Google Fact Check..."):
                 text_result, review_details = check_text_fact(key_sentence, apikey)
-             # 🐞 DEBUG: Print raw output regardless
+
+            # 🐞 DEBUG: Print raw output regardless
             st.subheader("🐞 Debug Info")
             st.write("**Key Sentence Queried:**", key_sentence)
             st.write("**Fact Check Result:**", text_result)

@@ -74,7 +74,7 @@ st.title("Fake News Detector")
 st.write("Enter a news article URL to check its authenticity.")
 
 url = st.text_input("Enter News URL:")
-apikey = "AIzaSyBpg-bVa5VvcNZ7T1ToyUKTbX-i43hdV3M"
+apikey = os.getenv("FACT_CHECK_API_KEY")  # Fetch API key from environment variable
 
 if st.button("Check News"):
     if url and apikey:
@@ -138,7 +138,7 @@ if st.button("Check News"):
                 for img_url in images[:3]:  # Limit to 3 images for performance
                     result = check_image_deepfake(img_url, model)
                     deepfake_results[img_url] = result
-                    st.image(img_url, caption=result, use_container_width=True)
+                    st.image(img_url, caption=result, use_column_width=True)
                 
                 # Calculate fake score
                 fake_score = sum(1 for v in deepfake_results.values() if v == "Deepfake") / max(len(deepfake_results), 1)
@@ -165,4 +165,4 @@ if st.button("Check News"):
             elif text_flag is False or combined_confidence <= 0.5:
                 st.success(f"✅ This news appears REAL. Confidence: {(1 - combined_confidence) * 100:.2f}%")
     else:
-        st.warning("Please enter a valid URL and API Key.")
+        st.warning("Please enter a valid URL and ensure the API Key is set in the environment.")

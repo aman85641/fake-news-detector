@@ -115,7 +115,7 @@ if st.button("Check News"):
 
             if images:
                 st.subheader("🖼️ Extracted Images")
-                model = load_model("deepfake_model.h5")
+                model = load_model("deepfake_model.h5",compile=False)
                 deepfake_results = {}
 
                 with st.spinner("🧠 Running deepfake analysis..."):
